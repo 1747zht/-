@@ -1,9 +1,11 @@
 <template>
-  <div>
-    hhh
-  </div>
+  <router-view></router-view>
 </template>
-
+<script>
+export default {
+  name: 'App'
+}
+</script>
 <style lang="less">
 
 </style>
