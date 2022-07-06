@@ -12,7 +12,7 @@
 			<div class="layer" :class="{ open: topCategory.open }">
 				<ul>
 					<li v-for="subCategory in topCategory.children" :key="subCategory.id">
-						<router-link :to="`/category/${subCategory.id}`" @click="close(topCategory.id)">
+						<router-link :to="`/category/sub/${subCategory.id}`" @click="close(topCategory.id)">
 							<img :src="subCategory.picture" alt="">
 							<p>{{ subCategory.name }}</p>
 						</router-link>
