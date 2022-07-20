@@ -1,66 +1,74 @@
 <template>
-<AppLayout>
-  <div class="container">
-    <XtxBread>
-      <xtx-bread-item path="/">首页</xtx-bread-item>
-      <transition name="fade-right" mode="out-in">
-        <!-- mode属性指定动画的执行顺序 默认同时执行(in-out)先入场后两场 out-in先离场后入场 -->
-        <!-- 动画的执行条件是组件的挂载和卸载 -->
-        <!-- key属性是为了让Vue虚拟DOM树发生变化(重新渲染)从而实现执行动画 -->
-        <xtx-bread-item :key="category?.id">{{category?.name}}</xtx-bread-item>
-      </transition>
-    </XtxBread>
-    <XtxCarousel :carousels="banners" style="height: 500px" />
-    <ShowSubCategory :subCategories="category.children" v-if="category"/>
-    <RecommendGoods/>
-  </div>
-</AppLayout>
+  <AppLayout>
+    <div class="container">
+      <XtxBread>
+        <XtxBreadItem path="/"> 首页</XtxBreadItem>
+        <Transition name="fade-right" mode="out-in">
+          <XtxBreadItem :key="`/category/${topCategory?.id}`">
+            {{ topCategory?.name }}</XtxBreadItem
+          >
+        </Transition>
+        <XtxBreadItem :carousels="banners"></XtxBreadItem>
+      </XtxBread>
+      <!-- 调用轮播图组件 -->
+      <XtxCarousel
+        :carousels="banners"
+        :style="{
+          height: '500px',
+        }"
+      />
+      <!--    全部二级分类-->
+
+      <ShowSubCategoryList
+        :subCategories="topCategory.children"
+        v-if="topCategory"
+      ></ShowSubCategoryList>
+      <!-- 二级分类商品推荐    -->
+      <RecommendGoods></RecommendGoods>
+    </div>
+  </AppLayout>
 </template>
 <script>
-import AppLayout from '@/components/AppLayout.vue'
-import useBanners from '@/hooks/useBanners'
+import AppLayout from '@/components/AppLayout'
+import XtxBread from '@/components/library/XtxBread'
+import XtxBreadItem from '@/components/library/XtxBreadItem'
+import XtxCarousel from '@/components/library/XtxCarousel'
+import ShowSubCategoryList from '@/views/category/components/ShowSubCategoryList'
+import RecommendGoods from '@/views/category/components/RecommendGoods'
+
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { computed } from '@vue/reactivity'
-import ShowSubCategory from './components/ShowSubCategory.vue'
-import RecommendGoods from './components/RecommendGoods.vue'
+import { computed } from 'vue'
+import { useBanners } from '@/hooks/useBanners'
 export default {
-  components: { AppLayout, ShowSubCategory, RecommendGoods },
+  name: 'CategoryPage',
+  components: {
+    AppLayout,
+    XtxBread,
+    XtxBreadItem,
+    XtxCarousel,
+    ShowSubCategoryList,
+    RecommendGoods
+  },
   setup () {
-    // 轮播图数据
+    const topCategory = useCategory()
     const { banners, getData } = useBanners()
-    getData()
-    const category = useBread()
-    return { banners, category }
+    getData(2)
+
+    return { topCategory, banners }
   }
 }
-// 获取面包屑组件数据
-function useBread () {
-  const route = useRoute()
+function useCategory () {
+  // 获取 store 对象
   const store = useStore()
+  // 获取 route 对象
+  const route = useRoute()
   return computed(() => {
-    return store.state.category.list.find((item) => (item.id === route.params.id))
+    // 根据id查找一级分类数据
+    // id 从路由参数中获取
+    return store.state.category.list.find(
+      (item) => item.id === route.params.id
+    )
   })
 }
 </script>
-<style lang="less" scoped>
-// 面包屑导航动画
-.fade-right {
-  &-enter-from,
-  &-leave-to {
-    transform: translateX(20px);
-    opacity: 0;
-  }
-
-  &-enter-active,
-  &-leave-active {
-    transition: all 0.5s;
-  }
-
-  &-enter-to,
-  &-leave-from {
-    transform: none;
-    opacity: 1;
-  }
-}
-</style>

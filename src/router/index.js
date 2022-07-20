@@ -1,33 +1,86 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-const HomePage = () => import('@/views/home')
-const TopCategoryPage = () => import('@/views/category/TopCategoryPage.vue')
-const SubCategoryPage = () => import('@/views/category/SubCategoryPage.vue')
+import authGuard from '@/router/authGuard'
+import LoginPage from '@/views/login/LoginPage'
+import CheckoutPage from '@/views/pay/CheckoutPage'
+import OrderView from '@/views/member/order/OrderView'
+import OrderListPage from '@/views/member/order/OrderListPage'
 
+const HomePage = () => import('@/views/home/HomePage')
+const TopCategoryPage = () => import('@/views/category/TopCategoryPage')
+const SubCategoryPage = () => import('@/views/category/SubCategoryPage')
+const GoodsDetailPage = () => import('@/views/goods/GoodsDetailPage')
+const LoginCallbackPage = () => import('@/views/login/LoginCallbackPage')
+const CartPage = () => import('@/views/cart/cartPage')
+const PayPage = () => import('@/views/pay/PayPage')
+const PayResultPage = () => import('@/views/pay/PayResultPage')
+const MemberHomePage = () => import('@/views/member/home/MemberHomePage')
+const OrderDetailPage = () => import('@/views/member/order/OrderDetailPage')
 const routes = [
-  // 首页
   {
     path: '/',
-    name: 'Home',
     component: HomePage
   },
-  // 分类
   {
     path: '/category/:id',
-    name: 'Category',
     component: TopCategoryPage
   },
-  // 二级分类
   {
     path: '/category/sub/:id',
-    name: 'SubCategory',
     component: SubCategoryPage
+  },
+  {
+    path: '/goods/:id',
+    component: GoodsDetailPage
+  },
+  {
+    path: '/login',
+    component: LoginPage
+  },
+  {
+    path: '/login/callback',
+    component: LoginCallbackPage
+  },
+  {
+    path: '/checkout/order',
+    component: CheckoutPage
+  },
+  { path: '/cart', component: CartPage },
+  {
+    path: '/checkout/pay',
+    component: PayPage
+  },
+  {
+    path: '/pay/callback',
+    component: PayResultPage
+  },
+  {
+    path: '/member/home',
+    component: MemberHomePage
+  },
+  {
+    path: '/member/order',
+    component: OrderView,
+    children: [
+      {
+        path: '',
+        component: OrderListPage
+      },
+      {
+        path: ':id',
+        component: OrderDetailPage
+      }
+    ]
   }
 ]
 
-// 创建路由实例
 const router = createRouter({
-  // 使用hash方式使用路由
   history: createWebHashHistory(),
-  routes
+  scrollBehavior: () => ({ top: 0 }),
+  routes,
+  linkActiveClass: 'fuzzy-active',
+  linkExactActiveClass: 'exact-active'
 })
+
+// 检测用户是否登录
+router.beforeEach(authGuard)
 export default router

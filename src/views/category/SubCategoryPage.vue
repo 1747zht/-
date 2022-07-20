@@ -1,29 +1,31 @@
 <template>
   <AppLayout>
     <div class="container">
-      <!-- 面包屑导航 -->
       <XtxBread>
         <XtxBreadItem path="/">首页</XtxBreadItem>
-        <XtxBreadItem :path="`/category/${category?.topCategory?.id}`">
-          {{ category?.topCategory?.name }}
+        <XtxBreadItem :path="`/category/${category.topCategory?.id}`">
+          {{ category.topCategory?.name }}
         </XtxBreadItem>
         <Transition name="fade-right" mode="out-in">
-          <!-- 面包屑动画 -->
-          <XtxBreadItem :key="category?.subCategory?.id">
-            {{ category?.subCategory?.name }}
+          <XtxBreadItem :key="category.subCategory?.id">
+            {{ category.subCategory?.name }}
           </XtxBreadItem>
         </Transition>
       </XtxBread>
-      <!-- 筛选条件 -->
-      <SubFilter @onFilterParamsChanged="onFilterParamsChanged" />
-
+      <!--    筛选条件-->
+      <SubFilter @onFilterParamsChanged="onFilterSortParamsChanged"></SubFilter>
+      <!-- 商品区块 -->
       <div class="goods-list">
         <!-- 商品排序 -->
-        <SubSort @onSortParamsChanged="onFilterParamsChanged" />
+        <SubSort @onSortParamsChanged="onFilterSortParamsChanged" />
         <!-- 商品列表 -->
-        <GoodsList :goods="goodsData.items" v-if="goodsData" />
-        <!-- 无限加载组件 -->
-        <XtxInfiniteLoading :loading="loading" :finished="finished" @infinite="loadMore" />
+        <GoodsList :goods="result.items" v-if="result" />
+        <!--        加载更多-->
+        <XtxInfiniteLoading
+          :loading="loading"
+          :finished="finished"
+          @infinite="loadMore"
+        />
       </div>
     </div>
   </AppLayout>
@@ -31,154 +33,154 @@
 
 <script>
 import AppLayout from '@/components/AppLayout'
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import XtxBread from '@/components/library/XtxBread'
+import XtxBreadItem from '@/components/library/XtxBreadItem'
+import SubFilter from '@/views/category/components/SubFilter'
+import SubSort from '@/views/category/components/SubSort'
+import GoodsList from '@/views/category/components/GoodsList'
+
 import { useStore } from 'vuex'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { computed, ref, watch } from 'vue'
-import SubFilter from './components/SubFilter.vue'
-import SubSort from './components/SubSort.vue'
-import GoodsList from './components/GoodsList.vue'
-import { getGoodsListApi } from '@/api/category'
+import { getGoodsList } from '@/api/category'
 
 export default {
-  name: 'SubCategory',
-  components: { GoodsList, SubSort, SubFilter, AppLayout },
+  name: 'SubCategoryPage',
+  components: {
+    AppLayout,
+    XtxBread,
+    XtxBreadItem,
+    SubFilter,
+    SubSort,
+    GoodsList
+  },
   setup () {
-    // 获取面包屑导航数据
+    // 轮播图
     const category = useBread()
-
-    // 获取商品数据
-    const { goodsData, onFilterParamsChanged, loading, finished, loadMore } =
-      useGoods()
-
+    const { loadMore } = uesGoods()
+    // 获取用户筛选条件
+    // const onParamsChanged = (target) => {
+    //   useSubCategoryFilter(target);
+    // };
+    // 商品数据
+    const { result, onFilterSortParamsChanged, loading, finished } = uesGoods()
     return {
       category,
-      goodsData,
-      onFilterParamsChanged,
+      result,
+      onFilterSortParamsChanged,
       loading,
       finished,
       loadMore
     }
   }
 }
-
-// 获取面包屑组件数据
-const useBread = () => {
-  // 获取路由信息
-  const route = useRoute()
-  // 获取 store
+function useBread () {
+  //  获取store对象
   const store = useStore()
-  // 获取面包屑需要的分类信息
+  //  获取route 对象
+  const route = useRoute()
+  //  根据二级分类id 查找二级分类和一级分类
   return computed(() => {
-    // 一级分类
-    let topCategory = null
-    // 二级分类
-    let subCategory = null
-    // 遍历一级分类
-    store.state.category.list.forEach((top) => {
-      // 遍历二级分类
-      top.children?.forEach((sub) => {
-        // 判断是否是当前分类
-        if (sub.id === route.params.id) {
-          // 存储一级分类
-          topCategory = top
-          // 存储二级分类
-          subCategory = sub
+    // 用于存储一级分类和二级分类的对象
+    const result = {}
+    //  遍历一级分类
+    store.state.category.list.forEach((topCategory) => {
+      //  遍历二级分类
+      topCategory.children?.forEach((subCategory) => {
+        //  查找当前二级分类
+        if (subCategory.id === route.params.id) {
+          //  存储一级分类
+          result.topCategory = {
+            name: topCategory.name,
+            id: topCategory.id
+          }
+          //  存储二级分类
+          result.subCategory = {
+            name: subCategory.name,
+            id: subCategory.id
+          }
         }
       })
     })
-
-    return { topCategory, subCategory }
+    return result
   })
 }
-
 // 获取商品数据
-const useGoods = () => {
-  // 获取路由信息
+function uesGoods () {
+  // 用于标识加载状态
+  const loading = ref(false)
+  // 用于标识是否全部数据都已经加载完成
+  const finished = ref(false)
+  //  获取路由信息对象
   const route = useRoute()
-  // 商品数据
-  const goodsData = ref(null)
-  // 请求参数
+  //  用于存储商品数据
+  const result = ref(null)
+  //  用于存储请求参数
   const reqParams = ref({
     categoryId: route.params.id,
     // 当前页
-    page: 0,
-    // 每次请求获取的数据数量
+    page: 1,
+    // 每次请求获取的数据条数
     pageSize: 10
   })
-  // 当前是否处于加载状态
-  const loading = ref(false)
-  // 是否已加载完所有数据
-  const finished = ref(false)
-  // 获取商品数据的方法
+  //  用于获取商品数据
   const getGoods = () => {
-    // 数据加载中
-    loading.value = true
-    // 重置 finished 为 false 默认不显示
-    finished.value = false
-    // 获取商品数据
-    getGoodsListApi(reqParams.value).then((res) => {
-      // 数据加载完成
-      loading.value = false
-      // 判断是否是第一页
+    //  获取商品数据
+    getGoodsList(reqParams.value).then((data) => {
+      console.log(data.result)
+      // 如果当前不是第一页，直接赋值
       if (reqParams.value.page === 1) {
-        // 如果是第一页直接赋值
-        goodsData.value = res.result
+        result.value = data.result
+        // 当路由参数发生变化时重置页码
+        finished.value = false
       } else {
-        // 否则追加到数据后面
-        goodsData.value = {
-          ...res.result,
-          items: [...goodsData.value.items, ...res.result.items]
+        //  如果当前不是第一页，做商品列表数据的累加
+        result.value = {
+          items: [...data.result.items, ...data.result.items]
         }
+        console.log(result.value)
       }
-      // 判断是否是最后一页
-      // 如果获取到的数据为空 设置 finished 为 true 解决第一页没有数据不显示数据加载完成的组件
-      if (
-        reqParams.value.page === res.result.pages ||
-        res.result?.items?.length <= 0
-      ) {
-        // 已加载完所有数据
+      //  如果当前页是最后一页
+      if (reqParams.value.page === data.result.page) {
+        //  所有数据已加载完成
         finished.value = true
       }
     })
   }
-  // 监听请求参数的变化
-  watch(
-    () => reqParams.value,
-    () => {
-      // 当数据变化的时候重新发起请求获取新的数据
-      getGoods()
-    }
-  )
-  // 加载更多数据
+  // 加载更多
   const loadMore = () => {
-    // 页码 +1
     reqParams.value = {
       ...reqParams.value,
       page: reqParams.value.page + 1
     }
   }
-
-  // 当前路由更新时执行
-  onBeforeRouteUpdate((to) => {
-    // 更新请求参数
+  // 用于更新请求参数
+  const onFilterSortParamsChanged = (target) => {
+    console.dir(target)
+    reqParams.value = { ...reqParams.value, ...target, page: 1 }
+  }
+  // 路由更新，更新请求参数中的分类id
+  onBeforeRouteUpdate(() => {
     reqParams.value = {
-      categoryId: to.params.id,
-      // 切换二级分类时重置页码
-      page: 1
+      categoryId: route.params.id,
+      // 当前页
+      page: 1,
+      // 每次请求获取的数据条数
+      pageSize: 10
     }
   })
-
-  // 更新请求参数
-  const onFilterParamsChanged = (target) => {
-    reqParams.value = {
-      ...reqParams.value,
-      ...target,
-      // 步骤页码
-      page: 1
+  //  监听请求参数变化，
+  watch(
+    () => reqParams.value,
+    () => {
+      getGoods()
+    },
+    {
+      // 初始化进入页面获取商品数据
+      immediate: true
     }
-  }
-
-  return { goodsData, onFilterParamsChanged, loading, finished, loadMore }
+  )
+  return { result, onFilterSortParamsChanged, loading, finished, loadMore }
 }
 </script>
 

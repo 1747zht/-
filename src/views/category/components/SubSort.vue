@@ -1,69 +1,61 @@
 <template>
   <div class="sub-sort">
-    <!-- 左边筛选区域 -->
     <div class="sort">
       <a
-        href="javascript:;"
-        :class="{ active: sortParams.sortField === '' }"
         @click="updateSortParams({ sortField: '', sortMethod: 'desc' })"
+        :class="{ active: sortParams.sortField === '' }"
+        href="javascript:"
+        >默认排序</a
       >
-        默认排序
-      </a>
       <a
-        href="javascript:;"
-        :class="{ active: sortParams.sortField === 'publishTime' }"
         @click="updateSortParams({ sortField: 'publishTime' })"
+        :class="{ active: sortParams.sortField === 'publishTime' }"
+        href="javascript:"
+        >最新商品</a
       >
-        最新商品
-      </a>
       <a
-        href="javascript:;"
-        :class="{ active: sortParams.sortField === 'orderNum' }"
         @click="updateSortParams({ sortField: 'orderNum' })"
+        :class="{ active: sortParams.sortField === 'orderNum' }"
+        href="javascript:"
+        >最高人气</a
       >
-        最高人气
-      </a>
       <a
-        href="javascript:;"
-        :class="{ active: sortParams.sortField === 'evaluateNum' }"
         @click="updateSortParams({ sortField: 'evaluateNum' })"
+        :class="{ active: sortParams.sortField === 'evaluateNum' }"
+        href="javascript:"
+        >评论最多</a
       >
-        评论最多
-      </a>
       <a
-        href="javascript:;"
         @click="
           updateSortParams({
             sortField: 'price',
             sortMethod: sortParams.sortMethod === 'desc' ? 'asc' : 'desc',
           })
         "
+        href="javascript:"
       >
         价格排序
         <i
           class="arrow up"
           :class="{ active: sortParams.sortMethod === 'asc' }"
-        />
+        ></i>
         <i
           class="arrow down"
           :class="{ active: sortParams.sortMethod === 'desc' }"
-        />
+        ></i>
       </a>
     </div>
-    <!-- 右边筛选区域 -->
     <div class="check">
       <XtxCheckbox
         v-model="sortParams.inventory"
         @update:modelValue="updateSortParams({ inventory: $event })"
+        >仅显示有货商品</XtxCheckbox
       >
-        仅显示有货商品
-      </XtxCheckbox>
       <XtxCheckbox
         v-model="sortParams.onlyDiscount"
         @update:modelValue="updateSortParams({ onlyDiscount: $event })"
+        >仅显示特惠商品</XtxCheckbox
       >
-        仅显示特惠商品
-      </XtxCheckbox>
     </div>
   </div>
 </template>
@@ -73,24 +65,20 @@ import { ref } from 'vue'
 export default {
   name: 'SubSort',
   setup (props, { emit }) {
-    // 排序条件
+    // 用于存储排序条件
     const sortParams = ref({
       sortField: '',
       sortMethod: 'desc',
       inventory: false,
       onlyDiscount: false
     })
-    // 定义更新排序条件的方法
+    //  用于更新排序条件
     const updateSortParams = (target) => {
-      // 更新排序条件
-      sortParams.value = {
-        ...sortParams.value,
-        ...target
-      }
-      // 将筛选条件传递给父组件
+      //  更新筛选条件
+      sortParams.value = { ...sortParams.value, ...target }
+      // 将筛选条件传递到父组件
       emit('onSortParamsChanged', sortParams.value)
     }
-
     return { sortParams, updateSortParams }
   }
 }
@@ -114,8 +102,8 @@ export default {
       position: relative;
       transition: all 0.3s;
       &.active {
-        background: #27BA9B;
-        border-color: #27BA9B;
+        background: @xtxColor;
+        border-color: @xtxColor;
         color: #fff;
       }
       .arrow {
@@ -126,14 +114,14 @@ export default {
           top: 3px;
           border-bottom-color: #bbb;
           &.active {
-            border-bottom-color:#27BA9B;
+            border-bottom-color: @xtxColor;
           }
         }
         &.down {
           top: 15px;
           border-top-color: #bbb;
           &.active {
-            border-top-color: #27BA9B;
+            border-top-color: @xtxColor;
           }
         }
       }

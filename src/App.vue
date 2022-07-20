@@ -1,11 +1,16 @@
 <template>
-  <router-view></router-view>
+  <RouterView></RouterView>
 </template>
+
 <script>
+import { ref } from 'vue'
+
 export default {
-  name: 'App'
+  setup () {
+    const current = ref()
+    return { current }
+  }
 }
 </script>
-<style lang="less">
 
-</style>
+<style scoped lang="less"></style>

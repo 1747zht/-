@@ -17,33 +17,31 @@ import { useIntersectionObserver } from '@vueuse/core'
 export default {
   name: 'XtxInfiniteLoading',
   props: {
-    // 是否正在加载
+    //  是否在加载
     loading: {
       type: Boolean,
       default: false
     },
-    // 是否已加载完所有数据
+    //  是否全部数据加载已加载完成
     finished: {
       type: Boolean,
       default: false
     }
   },
   setup (props, { emit }) {
-    // 被监听的元素
+    // 被监听元素
+
     const target = ref(null)
-    console.log(target)
-    // 监听元素
+    // 执行监听元素的操作
     useIntersectionObserver(target, ([{ isIntersecting }]) => {
       // 如果元素进入可视区
       if (isIntersecting) {
-        // 如果当前没有处于加载状态并且还有数据可以加载
+        //  如果没有正在加载并且还有数据可以加载
         if (!props.loading && !props.finished) {
-          // 通过 emit 告诉父组件元素以进入可视区
           emit('infinite')
         }
       }
     })
-
     return { target }
   }
 }

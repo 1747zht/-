@@ -2,9 +2,9 @@
   <div
     class="xtx-carousel"
     @mouseenter="stopAutoPlay"
-    @mouseleave="startAutoPlay"
+    @mouseleave="runAutoPlay"
   >
-    <!-- 轮播图主体 -->
+    <!--    -->
     <ul class="carousel-body">
       <li
         class="carousel-item"
@@ -12,9 +12,8 @@
         v-for="(item, index) in carousels"
         :key="item.id"
       >
-        <!-- 如果 item 是数组则表示一张轮播图中有多个数据，需要对其进行遍历渲染多个数据 -->
         <div class="slider" v-if="Array.isArray(item)">
-          <router-link
+          <RouterLink
             v-for="goods in item"
             :key="goods.id"
             :to="`/goods/${goods.id}`"
@@ -22,29 +21,25 @@
             <img :src="goods.picture" alt="" />
             <p class="name ellipsis">{{ goods.name }}</p>
             <p class="price">&yen;{{ goods.price }}</p>
-          </router-link>
+          </RouterLink>
         </div>
-        <!-- 如果 item 是对象则直接渲染 -->
-        <RouterLink :to="item.hrefUrl" v-else>
+        <!--        如果当前item 是对象就拜师当前遍历的是普通轮播图数据-->
+        <router-link :to="item.hrefUrl" v-else>
           <img :src="item.imgUrl" alt="" />
-        </RouterLink>
+        </router-link>
       </li>
     </ul>
-    <!-- 轮播图左按钮 -->
-    <a @click="toggle(-1)" class="carousel-btn prev">
-      <i class="iconfont icon-angle-left"></i>
-    </a>
-    <!-- 轮播图右按钮 -->
-    <a @click="toggle(1)" class="carousel-btn next">
-      <i class="iconfont icon-angle-right"></i>
-    </a>
-    <!-- 圆点导航 -->
+    <a @click="toggle(-1)" href="javascript:" class="carousel-btn prev"
+      ><i class="iconfont icon-angle-left"></i
+    ></a>
+    <a @click="toggle(1)" href="javascript:" class="carousel-btn next"
+      ><i class="iconfont icon-angle-right"></i
+    ></a>
     <div class="carousel-indicator">
       <span
         :class="{ active: index === currentIndex }"
         v-for="(item, index) in carousels"
         :key="item.id"
-        @click="currentIndex = index"
       ></span>
     </div>
   </div>
@@ -59,56 +54,62 @@ export default {
     carousels: {
       type: Array
     },
-    autoplay: {
-      default: false,
+    autoPlay: {
       type: Boolean
     },
     duration: {
-      default: 3000,
-      type: Number
+      type: Number,
+      default: 3000
     }
   },
   setup (props) {
+    // console.log(props);
+    // console.log(props);
+    // 默认索引
     const currentIndex = ref(0)
-    // 定时器
+    // 用于存储定时器
     let timer = null
-    // 开启轮播
-    const startAutoPlay = () => {
-      if (props.autoplay && props.carousels.length > 1) {
+    // 开启自动轮播
+    const runAutoPlay = () => {
+      // console.log("开了");
+      //  判断调用者是否开启了自动轮播
+      //  判断是否有轮播数据
+      if (props.autoPlay && props.carousels.length > 1) {
+        //  开启
+        // console.log(props.autoPlay);
         timer = setInterval(() => {
-          currentIndex.value++
-          if (currentIndex.value >= props.carousels.length) {
-            currentIndex.value = 0
-          }
+          toggle(1)
+          // console.log(111111);
         }, props.duration)
       }
     }
-    // 停止轮播
+    // 停止自动轮播
     const stopAutoPlay = () => {
+      // console.log("关掉");
       clearInterval(timer)
     }
-    // 组件挂载完成后试图开启自动轮播
-    onMounted(startAutoPlay)
-    // 组件卸载之后停止自动轮播
+    // 组件挂载完成后 开启轮播图
+    onMounted(runAutoPlay)
+    // 组件卸载后 关闭轮播图
     onUnmounted(stopAutoPlay)
 
-    // 轮播图切换
+    // 切换图片
     const toggle = (step) => {
+      // console.log(step);
       const nextIndex = currentIndex.value + step
+      // 如果当前图片没有没有上一张照片
       if (nextIndex < 0) {
-        // 显示最后一张
+        // 显示最后一张照片
         currentIndex.value = props.carousels.length - 1
+        //  如果没有下一张了
       } else if (nextIndex > props.carousels.length - 1) {
-        // 如果没有下一张
+        // 显示第一张
         currentIndex.value = 0
       } else {
-        // 正常情况
         currentIndex.value = nextIndex
       }
-      return nextIndex
     }
-
-    return { currentIndex, toggle, startAutoPlay, stopAutoPlay }
+    return { currentIndex, toggle, stopAutoPlay, runAutoPlay }
   }
 }
 </script>
@@ -119,13 +120,11 @@ export default {
   min-width: 300px;
   min-height: 150px;
   position: relative;
-
   .carousel {
     &-body {
       width: 100%;
       height: 100%;
     }
-
     &-item {
       width: 100%;
       height: 100%;
@@ -134,18 +133,15 @@ export default {
       top: 0;
       opacity: 0;
       transition: opacity 0.5s linear;
-
       &.fade {
         opacity: 1;
         z-index: 1;
       }
-
       img {
         width: 100%;
         height: 100%;
       }
     }
-
     &-indicator {
       position: absolute;
       left: 0;
@@ -153,7 +149,6 @@ export default {
       z-index: 2;
       width: 100%;
       text-align: center;
-
       span {
         display: inline-block;
         width: 12px;
@@ -161,17 +156,14 @@ export default {
         background: rgba(0, 0, 0, 0.2);
         border-radius: 50%;
         cursor: pointer;
-
         ~ span {
           margin-left: 12px;
         }
-
         &.active {
           background: #fff;
         }
       }
     }
-
     &-btn {
       width: 44px;
       height: 44px;
@@ -185,48 +177,40 @@ export default {
       line-height: 44px;
       opacity: 0;
       transition: all 0.5s;
-
       &.prev {
         left: 20px;
       }
-
       &.next {
         right: 20px;
       }
     }
   }
-
   &:hover {
     .carousel-btn {
       opacity: 1;
     }
   }
 }
-
 .slider {
   display: flex;
   justify-content: space-around;
   padding: 0 40px;
-
   > a {
     width: 240px;
     text-align: center;
-
     img {
       padding: 20px;
       width: 230px !important;
       height: 230px !important;
     }
-
     .name {
       font-size: 16px;
       color: #666;
       padding: 0 40px;
     }
-
     .price {
       font-size: 16px;
-      color: #CF4444;
+      color: @priceColor;
       margin-top: 15px;
     }
   }

@@ -116,7 +116,7 @@ export default {
       }
       &:hover {
         .iconfont {
-          color: #27BA9B;
+          color: @xtxColor;
         }
       }
       &:last-child {
@@ -145,7 +145,7 @@ export default {
         margin-top: 5px;
         color: #fff;
         border-radius: 2px;
-        background-color:#27BA9B;
+        background-color: @xtxColor;
       }
     }
     .hotline {
